@@ -29,6 +29,8 @@
 #include "protocols/wlr-layer-shell-unstable-v1.h"
 #include "protocols/wlr-foreign-toplevel-management-unstable-v1-client-header.h"
 #include "protocols/wlr-foreign-toplevel-management-unstable-v1.h"
+#include "protocols/xdg-output-unstable-v1-client-header.h"
+#include "protocols/xdg-output-unstable-v1.h"
 
 #include "wl.h"
 #include "pool-buffer.h"
@@ -40,6 +42,7 @@
 #include "wl_ctx.h"
 #include "wl_output.h"
 #include "wl_seat.h"
+#include "compositor.h"
 
 struct window_wl {
         cairo_surface_t *c_surface;
@@ -212,6 +215,9 @@ static struct dunst_output *get_configured_output(void) {
                         }
                         return configured_output;
                 case FOLLOW_MOUSE:
+                        if(ctx.compositor_info) {
+                                return ctx.compositor_info->get_active_screen();
+                        }
                         // fallthrough
                 case FOLLOW_KEYBOARD:
                         // fallthrough
@@ -263,6 +269,10 @@ static void handle_global(void *data, struct wl_registry *registry,
                         version >= ZWLR_FOREIGN_TOPLEVEL_HANDLE_V1_STATE_FULLSCREEN_SINCE_VERSION) {
                 LOG_D("Found toplevel manager %i", name);
                 ctx.toplevel_manager_name = name;
+        } else if(strcmp(interface, zxdg_output_manager_v1_interface.name) == 0) {
+                LOG_D("Found xdg-output-manager-v1");
+                ctx.xdg_output_manager = wl_registry_bind(registry, name,
+                                &zxdg_output_manager_v1_interface, version);
         }
 }
 
@@ -359,6 +369,11 @@ bool wl_init(void) {
 
         if (ctx.toplevel_manager == NULL) {
                 LOG_W("compositor doesn't support zwlr_foreign_toplevel_v1. Fullscreen detection won't work");
+        }
+
+        ctx.compositor_info = wl_get_compositor();
+        if(ctx.compositor_info && !ctx.compositor_info->init()) {
+                ctx.compositor_info = NULL; // Init failed, no need to hold onto this.
         }
 
         // Set up the cursor. It needs a wl_surface with the cursor loaded into it.
@@ -736,7 +751,6 @@ void wl_display_surface(cairo_surface_t *srf, window winptr, const struct dimens
         cairo_rectangle(c, 0, 0, dim->w * scale, dim->h * scale);
         cairo_fill(c);
         cairo_restore(c);
-
         ctx.cur_dim = *dim;
 
         set_dirty();
@@ -769,6 +783,8 @@ const struct screen_info* wl_get_active_screen(void) {
 
         struct dunst_output *current_output = get_configured_output();
         if (current_output != NULL) {
+                scr.x = current_output->x;
+                scr.y = current_output->y;
                 scr.w = current_output->width;
                 scr.h = current_output->height;
                 return &scr;

@@ -19,6 +19,7 @@
 #include <wayland-util.h>
 
 #include "../output.h"
+#include "compositor.h"
 #include "libgwater-wayland.h"
 #include "pool-buffer.h"
 
@@ -61,6 +62,10 @@ struct wl_ctx {
         struct wl_cursor_theme *cursor_theme;
         const struct wl_cursor_image *cursor_image;
         struct wl_surface *cursor_surface;
+
+        // TODO: Maybe rename?
+        struct compositor *compositor_info;
+        struct zxdg_output_manager_v1 *xdg_output_manager;
 };
 
 extern struct wl_ctx ctx;

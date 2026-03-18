@@ -5,12 +5,14 @@
  * @license BSD-3-Clause
  */
 
+#include "protocols/xdg-output-unstable-v1-client-header.h"
 #define _POSIX_C_SOURCE 200112L
 #include "wl_output.h"
 
 #include "../dunst.h"
 #include "../log.h"
 #include "wl_ctx.h"
+
 
 static void output_handle_geometry(void *data, struct wl_output *wl_output,
                 int32_t x, int32_t y, int32_t phy_width, int32_t phy_height,
@@ -63,6 +65,37 @@ static const struct wl_output_listener output_listener = {
 #endif
 };
 
+static void xdg_output_handle_description(void *data, struct zxdg_output_v1 *xdg_output, const char* description) {
+        // do nothing
+}
+
+static void xdg_output_handle_logical_position(void *data, struct zxdg_output_v1 *xdg_output, int32_t x, int32_t y) {
+        struct dunst_output *output = data;
+        output->x = x;
+        output->y = y;
+        LOG_D("Output global %" PRIu32 " pos (x, y) = (%" PRIu32 ", %" PRIu32 ")", output->global_name, x, y);
+}
+static void xdg_output_handle_logical_size(void *data, struct zxdg_output_v1 *xdg_output, int32_t x, int32_t y) {
+        struct dunst_output *output = data;
+        output->width = x;
+        output->height = y;
+}
+
+static void xdg_output_handle_name(void *data, struct zxdg_output_v1 *xdg_output, const char *name) {
+        // do nothing
+}
+static void xdg_output_handle_done(void *data, struct zxdg_output_v1 *xdg_output) {
+        // do nothing
+}
+static const struct zxdg_output_v1_listener xdg_output_listener = {
+        .description = xdg_output_handle_description,
+        .logical_position = xdg_output_handle_logical_position,
+        .logical_size = xdg_output_handle_logical_size,
+        .name = xdg_output_handle_name,
+        .done = xdg_output_handle_done,
+};
+
+
 void create_output(struct wl_registry *registry, uint32_t global_name, uint32_t version) {
         struct dunst_output *output = g_malloc0(sizeof(struct dunst_output));
         if (output == NULL) {
@@ -89,6 +122,10 @@ void create_output(struct wl_registry *registry, uint32_t global_name, uint32_t 
 
         wl_output_set_user_data(output->wl_output, output);
         wl_output_add_listener(output->wl_output, &output_listener, output);
+        if(ctx.xdg_output_manager != NULL) {
+                output->xdg_output = zxdg_output_manager_v1_get_xdg_output(ctx.xdg_output_manager, output->wl_output);
+                zxdg_output_v1_add_listener(output->xdg_output, &xdg_output_listener, output);
+        }
         number++;
 
         if (recreate_surface) {
