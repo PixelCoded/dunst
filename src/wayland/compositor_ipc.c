@@ -1,5 +1,14 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
+ * @file
+ * @ingroup wayland
+ * @brief Wayland output wrapper
+ * @copyright Copyright 2021-2026 Dunst contributors
+ * @license BSD-3-Clause
+ */
+
 #define _GNU_SOURCE
-#include "compositor.h"
+#include "compositor_ipc.h"
 #include "wl_ctx.h"
 #include "../log.h"
 
@@ -8,18 +17,18 @@
 
 #include <sys/socket.h>
 
-#include "compositors/hyprland.h"
+#include "ipcs/hyprland.h"
 
-struct compositor supported_compositors[] = {
-        (struct compositor) {
-                .name              = "hyprland",
-                .init              = wl_hyprland_init,
-                .get_active_screen = wl_hyprland_get_active_screen,
-                .update            = wl_hyprland_update,
+struct wl_compositor_ipc supported_compositors[] = {
+        (struct wl_compositor_ipc) {
+                .name               = "hyprland",
+                .init               = wl_hyprland_init,
+                .get_focused_output = wl_hyprland_get_focused_output,
+                .update             = wl_hyprland_update,
         }
 };
 
-struct compositor *wl_get_compositor() {
+struct wl_compositor_ipc *wl_get_compositor_ipc() {
         int fd = wl_display_get_fd(ctx.display);
 
         struct ucred ucred;

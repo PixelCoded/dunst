@@ -1,3 +1,12 @@
+/* SPDX-License-Identifier: BSD-3-Clause */
+/**
+ * @file
+ * @ingroup wayland
+ * @brief Wayland output wrapper
+ * @copyright Copyright 2021-2026 Dunst contributors
+ * @license BSD-3-Clause
+ */
+
 #include "hyprland.h"
 #include "../../log.h"
 #include "../wl_ctx.h"
@@ -17,7 +26,7 @@
 struct wl_hyprland_source {
         GSource source;
 };
-struct wl_hyprland_context hyprland_ctx = { 0 };
+struct wl_hyprland_ipc hyprland_ipc = { 0 };
 
 static char *wl_hyprland_get_sockpath(char *name);
 static char *wl_hyprland_readuntil(int fd, char *until);
@@ -33,6 +42,7 @@ bool wl_hyprland_init(void) {
 
         int socket2_fd = socket(AF_UNIX, SOCK_STREAM, 0);
         if(socket2_fd == -1) {
+                g_free(socket2_path);
                 return false; // TODO: Error message.
         }
 
@@ -43,6 +53,7 @@ bool wl_hyprland_init(void) {
         memmove(socket2_addr.sun_path, socket2_path, sizeof(socket2_addr.sun_path));
         if(connect(socket2_fd, (struct sockaddr*)&socket2_addr, sizeof(socket2_addr)) == -1) {
                 LOG_E("Couldn't connect to Hyprland's socket2 socket due to %s", strerror(errno));
+                g_free(socket2_path);
                 close(socket2_fd);
                 return false;
         }
@@ -50,41 +61,42 @@ bool wl_hyprland_init(void) {
         int flags = fcntl(socket2_fd, F_GETFL);
         if(flags == -1 || fcntl(socket2_fd, F_SETFL, flags | O_NONBLOCK) == -1) {
                 LOG_E("Couldn't set Hyprland's socket2 socket to be non-blocking due to %s", strerror(errno));
+                g_free(socket2_path);
                 close(socket2_fd);
                 return false;
         }
 
-        hyprland_ctx.socket2_fd = socket2_fd;
-        hyprland_ctx.source     = wl_hyprland_register_source(socket2_fd);
+        hyprland_ipc.socket2_fd = socket2_fd;
+        hyprland_ipc.source     = wl_hyprland_register_source(socket2_fd);
         LOG_D("Succesfully connected to Hyprland's socket2 socket");
         while(wl_hyprland_update()) {
                 /* Do nothing. Flush all events sent to us by Hyprland. */
         }
+        g_free(socket2_path);
         return true;
 }
 
-struct dunst_output *wl_hyprland_get_active_screen(void) {
+struct dunst_output *wl_hyprland_get_focused_output(void) {
         wl_hyprland_update();
-        return hyprland_ctx.focused_monitor;
+        return hyprland_ipc.focused_monitor;
 }
 
 bool wl_hyprland_update(void) {
-        char *cmd = wl_hyprland_readuntil(hyprland_ctx.socket2_fd, ">>");
+        char *cmd = wl_hyprland_readuntil(hyprland_ipc.socket2_fd, ">>");
         if(cmd == NULL) {
                 return false;
         }
 
-        LOG_D("CMD: %s", cmd);
         if(g_strcmp0(cmd, "focusedmon")) {
-                char *mon_name = wl_hyprland_readuntil(hyprland_ctx.socket2_fd, ",");
-                /*char *workspace_name =*/ wl_hyprland_readuntil(hyprland_ctx.socket2_fd, "\n");
+                char *mon_name = wl_hyprland_readuntil(hyprland_ipc.socket2_fd, ",");
+                /*char *workspace_name =*/ wl_hyprland_readuntil(hyprland_ipc.socket2_fd, "\n");
                 wl_hyprland_set_focused(mon_name);
         } else if(g_strcmp0(cmd, "focusedmonv2")) {
-                char *mon_name = wl_hyprland_readuntil(hyprland_ctx.socket2_fd, ",");
-                /*char *workspace_id = */ wl_hyprland_readuntil(hyprland_ctx.socket2_fd, "\n");
+                char *mon_name = wl_hyprland_readuntil(hyprland_ipc.socket2_fd, ",");
+                /*char *workspace_id = */ wl_hyprland_readuntil(hyprland_ipc.socket2_fd, "\n");
                 wl_hyprland_set_focused(mon_name);
         } else {
-                wl_hyprland_readuntil(hyprland_ctx.socket2_fd, "\n");
+                wl_hyprland_readuntil(hyprland_ipc.socket2_fd, "\n");
         }
         return true;
 }
@@ -139,8 +151,7 @@ static bool wl_hyprland_set_focused(char *mon_name) {
         struct dunst_output *output;
         wl_list_for_each(output, &ctx.outputs, link) {
                 if(g_strcmp0(output->name, mon_name)) {
-                        // TODO: Not sure whetever mon_name is output->name or output->global_name
-                        hyprland_ctx.focused_monitor = output;
+                        hyprland_ipc.focused_monitor = output;
                         return true;
                 }
         }
@@ -163,7 +174,7 @@ static gboolean wl_hyprland_fd_dispatch(GSource *source, GSourceFunc callback, g
 
 static gboolean wl_hyprland_fd_check(GSource *source) {
         struct pollfd pollfd = {
-                .fd = hyprland_ctx.socket2_fd,
+                .fd = hyprland_ipc.socket2_fd,
                 .events = POLLIN,
         };
         return poll(&pollfd, 1, 0) > 0;

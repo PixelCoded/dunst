@@ -19,7 +19,7 @@
 #include <wayland-util.h>
 
 #include "../output.h"
-#include "compositor.h"
+#include "compositor_ipc.h"
 #include "libgwater-wayland.h"
 #include "pool-buffer.h"
 
@@ -64,7 +64,7 @@ struct wl_ctx {
         struct wl_surface *cursor_surface;
 
         // TODO: Maybe rename?
-        struct compositor *compositor_info;
+        struct wl_compositor_ipc *compositor_ipc;
         struct zxdg_output_manager_v1 *xdg_output_manager;
 };
 

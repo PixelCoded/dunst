@@ -42,7 +42,7 @@
 #include "wl_ctx.h"
 #include "wl_output.h"
 #include "wl_seat.h"
-#include "compositor.h"
+#include "compositor_ipc.h"
 
 struct window_wl {
         cairo_surface_t *c_surface;
@@ -215,8 +215,8 @@ static struct dunst_output *get_configured_output(void) {
                         }
                         return configured_output;
                 case FOLLOW_MOUSE:
-                        if(ctx.compositor_info) {
-                                return ctx.compositor_info->get_active_screen();
+                        if(ctx.compositor_ipc && ctx.compositor_ipc->get_focused_output) {
+                                return ctx.compositor_ipc->get_focused_output();
                         }
                         // fallthrough
                 case FOLLOW_KEYBOARD:
@@ -371,9 +371,9 @@ bool wl_init(void) {
                 LOG_W("compositor doesn't support zwlr_foreign_toplevel_v1. Fullscreen detection won't work");
         }
 
-        ctx.compositor_info = wl_get_compositor();
-        if(ctx.compositor_info && !ctx.compositor_info->init()) {
-                ctx.compositor_info = NULL; // Init failed, no need to hold onto this.
+        ctx.compositor_ipc = wl_get_compositor_ipc();
+        if(ctx.compositor_ipc && !ctx.compositor_ipc->init()) {
+                ctx.compositor_ipc = NULL; // Init failed, no need to hold onto the IPC
         }
 
         // Set up the cursor. It needs a wl_surface with the cursor loaded into it.
