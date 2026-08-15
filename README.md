@@ -76,7 +76,7 @@ your notification history.
 # Documentation
 
 Most documentation can be found in dunst's man pages. In
-[**dunst(1)**](docs/dunst.1.pod) contains some general instructions on how
+[**dunst(1)**](docs/dunst.1.pod.in) contains some general instructions on how
 to run dunst and in
 [**dunst(5)**](docs/dunst.5.pod) all of dunst's configuration options are
 explained.
@@ -91,21 +91,21 @@ distro's repositories, don't worry, it's not hard to build it yourself.
 
 ### Dependencies
 
-- dbus (runtime)
-- libxinerama
-- libxrandr
-- libxss
-- glib
-- pango/cairo
-- gdk-pixbuf
-- libnotify (can build without, for dunstify, see [make parameters](#make-parameters))
-- wayland-client (can build without, see [make parameters](#make-parameters))
-- wayland-protocols (optional, for recompiling protocols)
-- xdg-utils (optional, xdg-open is the default 'browser' for opening URLs)
-- jq (optional, for installed completions and tools in contrib)
-- busctl (optional, for dunstctl rules and dunstctl history)
+* [`gdk-pixbuf-2.0`](https://repology.org/project/gdk-pixbuf/versions)
+* [`glib-2.0`](https://repology.org/project/glib/versions)
+* `gio-2.0`
+* `pangocairo` (provided by [pango](https://repology.org/project/pango/versions) + [cairo](https://repology.org/project/cairo-graphics-library/versions))
+* [`libnotify`](https://repology.org/project/libnotify/versions) (optional, for *dunstify*)
+* [`wayland-client`](https://repology.org/project/wayland/versions) (optional, for *wayland*)
+* `wayland-cursor` (optional, for *wayland*)
+* [`x11`](https://repology.org/project/xorg-server/versions) (optional, for *xorg*)
+* [`xinerama`](https://repology.org/project/libxinerama/versions) (optional, for *xorg*)
+* [`xext`](https://repology.org/project/libxext/versions) (optional, for *xorg*)
+* [`xrandr`](https://repology.org/project/libxrandr/versions) (optional, for *xorg*)
+* [`xscrnsaver`](https://repology.org/project/libxscrnsaver/versions) (optional, for *xorg*)
 
-The names will be different depending on your [distribution](https://github.com/dunst-project/dunst/wiki/Dependencies).
+The names will be different depending on your distribution.
+[See more here](https://github.com/dunst-project/dunst/wiki/Dependencies).
 
 ### Building
 
@@ -204,7 +204,6 @@ Please use the [issue tracker][issue-tracker] provided by GitHub to send us bug 
 ## Maintainers
 
 - [Friso Smit](https://github.com/fwsmit) <fw.smit01@gmail.com>
-- [Bjoern Hiller](https://github.com/zappolowski) <bjoern.hiller@gmail.com>
 - [Federico Angelilli](https://github.com/fedang) <code@fedang.net>
 
 Please only refer to active maintainers for issues and bugs.
@@ -213,6 +212,7 @@ Please only refer to active maintainers for issues and bugs.
 
 - [Nikos Tsipinakis](https://github.com/tsipinakis) <nikos@tsipinakis.com>
 - [Benedikt Heine](https://github.com/bebehei) <bebe@bebehei.de>
+- [Bjoern Hiller](https://github.com/zappolowski) <bjoern.hiller@gmail.com>
 
 ## Author
 

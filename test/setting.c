@@ -63,7 +63,7 @@ TEST test_dunstrc_defaults(void) {
         s_dunstrc = settings;
 
         ASSERT_EQ(s_default.corner_radius, s_dunstrc.corner_radius);
-        char message[500];
+        static char message[500];
 
         for (size_t i = 0; i < G_N_ELEMENTS(allowed_settings); i++) {
                 if (!allowed_settings[i].value) {

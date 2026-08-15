@@ -61,12 +61,14 @@ enum log_mask {
 };
 
 /**
+ * Get the current global loglevel
+ */
+GLogLevelFlags log_get_level(void);
+
+/**
  * Set the current loglevel to `level`
  *
  * @param level The desired log level
- *
- * If `level` is `NULL`, nothing will be done.
- * If `level` is an invalid value, nothing will be done.
  */
 void log_set_level(GLogLevelFlags level);
 

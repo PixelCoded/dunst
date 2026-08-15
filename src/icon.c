@@ -222,10 +222,10 @@ GdkPixbuf *get_pixbuf_from_file(const char *filename, char **id, int min_size, i
                 LOG_W("Failed to load image info for %s", STR_NN(filename));
                 return NULL;
         }
-        GdkPixbuf *pixbuf = NULL;
+
         // TODO immediately rescale icon upon scale changes
         icon_size_clamp(&w, &h, min_size, max_size);
-        pixbuf = gdk_pixbuf_new_from_file_at_scale(filename,
+        GdkPixbuf *pixbuf = gdk_pixbuf_new_from_file_at_scale(filename,
                         round(w * scale),
                         round(h * scale),
                         TRUE,
@@ -235,6 +235,9 @@ GdkPixbuf *get_pixbuf_from_file(const char *filename, char **id, int min_size, i
                 LOG_W("%s", error->message);
                 g_error_free(error);
         }
+
+        if (!pixbuf)
+                return NULL;
 
         const uint8_t *data = gdk_pixbuf_get_pixels(pixbuf);
         size_t rowstride = gdk_pixbuf_get_rowstride(pixbuf);

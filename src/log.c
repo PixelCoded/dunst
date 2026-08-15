@@ -55,6 +55,11 @@ void log_set_level_from_string(const char *level)
                 LOG_W("Unknown log level: '%s'", level);
 }
 
+GLogLevelFlags log_get_level(void)
+{
+        return log_level;
+}
+
 void log_set_level(GLogLevelFlags level)
 {
         log_level = level;

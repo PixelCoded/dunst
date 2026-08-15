@@ -193,7 +193,7 @@ void check_and_correct_settings(struct settings *s) {
                 DIE("setting width does not support negative values");
         }
         if (s->width.min > s->width.max) {
-                DIE("setting width min (%i) is always greather than max (%i)", s->width.min, s->width.max);
+                DIE("setting width min (%i) is greater than max (%i)", s->width.min, s->width.max);
         }
 
         if (s->height.min == INT_MIN) {
@@ -203,7 +203,7 @@ void check_and_correct_settings(struct settings *s) {
                 DIE("setting height does not support negative values");
         }
         if (s->height.min > s->height.max) {
-                DIE("setting height min (%i) is always greather than max (%i)", s->height.min, s->height.max);
+                DIE("setting height min (%i) is greater than max (%i)", s->height.min, s->height.max);
         }
 
         if (s->offset.x == INT_MIN || s->offset.y == INT_MAX) {

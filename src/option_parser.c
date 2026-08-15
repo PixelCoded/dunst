@@ -297,10 +297,16 @@ int string_parse_bool(const void *data, const char *s, void *ret)
 /** Parse a string that may represent an integer value */
 int string_parse_maybe_int(const void *data, const char *s, void *ret)
 {
+        // TODO: Rewrite the string parsing to not log errors
+        GLogLevelFlags saved = log_get_level();
+        log_set_level(G_LOG_LEVEL_CRITICAL);
+
         int *intval = (int *)data;
         if (!safe_string_to_int(intval, s)) {
                *intval = INT_MIN;
         }
+
+        log_set_level(saved);
 
         g_free(*(char**) ret);
         *(char**) ret = g_strdup(s);

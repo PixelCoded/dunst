@@ -31,8 +31,8 @@ If you find a problem with these new features, make sure to report it.
 =item B<default_pause_level> (values: [0-100], default: 0)
 
 Specify a pause level to be set on dunst startup. Notifications are only shown if
-their urgency level is higher than the pause level. See B<override_pause_level> for
-more information.
+their associated pause level is higher than the pause level threshold.
+See B<override_pause_level> for more information.
 
 =item B<monitor> (default: 0)
 
@@ -122,13 +122,14 @@ notification will expand from the minimum height as neccesary.
 
 Examples:
 
-    height = 300      # constant height of 300
-    height = (0, 300) # height between 0 and 300
+    height = (300, 300) # constant height of 300
+    height = (0, 300)   # height between 0 and 300
 
 Note that unlike width, different notifications can have diffrent height values.
 
 Dunst v1.11 and older do not support a dynamic height and B<height> accepts a
-single value whose behaviour is equivalent to (0, value).
+single value whose behaviour is equivalent to (0, value). A single value is
+interpreted in this way to maintain backwards compatibility.
 
 =item B<notification_limit> (default: 20)
 
