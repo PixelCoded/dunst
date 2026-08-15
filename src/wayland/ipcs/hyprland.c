@@ -87,17 +87,18 @@ bool wl_hyprland_update(void) {
                 return false;
         }
 
-        if(g_strcmp0(cmd, "focusedmon")) {
+        if(strcmp(cmd, "focusedmon") == 0) {
+                // TODO: Prioritize focusedmonv2 using if available. Since it is much more reliable.
                 char *mon_name = wl_hyprland_readuntil(hyprland_ipc.socket2_fd, ",");
-                /*char *workspace_name =*/ wl_hyprland_readuntil(hyprland_ipc.socket2_fd, "\n");
                 wl_hyprland_set_focused(mon_name);
-        } else if(g_strcmp0(cmd, "focusedmonv2")) {
+                // /*char *workspace_name =*/ wl_hyprland_readuntil(hyprland_ipc.socket2_fd, "\n");
+        } else if(strncmp(cmd, "focusedmonv2", 12) == 0) {
                 char *mon_name = wl_hyprland_readuntil(hyprland_ipc.socket2_fd, ",");
-                /*char *workspace_id = */ wl_hyprland_readuntil(hyprland_ipc.socket2_fd, "\n");
                 wl_hyprland_set_focused(mon_name);
-        } else {
-                wl_hyprland_readuntil(hyprland_ipc.socket2_fd, "\n");
+                // /*char *workspace_id = */ wl_hyprland_readuntil(hyprland_ipc.socket2_fd, "\n");
         }
+
+        wl_hyprland_readuntil(hyprland_ipc.socket2_fd, "\n");
         return true;
 }
 
@@ -150,7 +151,8 @@ static char *wl_hyprland_readuntil(int fd, char *until) {
 static bool wl_hyprland_set_focused(char *mon_name) {
         struct dunst_output *output;
         wl_list_for_each(output, &ctx.outputs, link) {
-                if(g_strcmp0(output->name, mon_name)) {
+                if(strcmp(output->name, mon_name) == 0) {
+                        // printf("Found %s (%s)\n", output->name, mon_name);
                         hyprland_ipc.focused_monitor = output;
                         return true;
                 }
